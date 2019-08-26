@@ -1,0 +1,56 @@
+#!/bin/sh
+
+PREFIX="_i.mp4"
+
+# A POSIX variable
+OPTIND=1         # Reset in case getopts has been used previously in the shell.
+FORMATS="240 360 480 720 1080"
+IS_PARALLEL=false
+
+show_help() {
+	cat << EOF
+Usage: convertToH264 [OPTIONS] [FILE]... 
+ 
+    -h	        Show help
+    -s FORMAT   Scale (resize) the input video, format: "240", "360", "480", "720", "1080"
+EOF
+}
+
+if [ $# -eq 0 ]; then
+    show_help 
+fi
+
+while getopts ":hs:" opt; do
+	case $opt in
+		s)
+            if [[ $FORMATS == *$OPTARG* ]]; then
+				video_filter="-vf scale=-2:$OPTARG"
+			    PREFIX="_$OPTARG"p.mp4
+            else
+            	echo "Invalid video format: $OPTARG" >&2
+				exit 1
+            fi
+      		;;
+        h)
+            show_help
+			exit 0
+          	;;
+    	\?)
+      		echo "Invalid option: -$OPTARG" >&2
+      		exit 1
+      		;;
+    	:)
+      		echo "Option -$OPTARG requires an argument." >&2
+      		exit 1
+      		;;
+  	esac
+done
+
+shift $((OPTIND-1))
+[ "${1:-}" = "--" ] && shift
+
+for i in "$@"; do
+	input_file=$(realpath "$i")
+	out_file="$input_file$PREFIX"
+	ffmpeg -i "$input_file" $video_filter -c:v libx264 -profile:v high -level 4.2 -c:a aac -strict -2 "$out_file"
+done
