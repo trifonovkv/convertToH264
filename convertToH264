@@ -5,7 +5,6 @@ PREFIX="_i.mp4"
 # A POSIX variable
 OPTIND=1         # Reset in case getopts has been used previously in the shell.
 FORMATS="240 360 480 720 1080"
-IS_PARALLEL=false
 
 show_help() {
 	cat << EOF
