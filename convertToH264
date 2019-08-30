@@ -46,7 +46,6 @@ while getopts ":hs:" opt; do
 done
 
 shift "$((OPTIND-1))"
-[ "${1:-}" = "--" ] && shift
 
 for i in "$@"; do
 	input_file=$(realpath "$i")
