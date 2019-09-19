@@ -12,6 +12,7 @@ Usage: convertToH264 [OPTIONS] [FILE]...
  
     -h	        Show help
     -s FORMAT   Scale (resize) the input video, format: "240", "360", "480", "720", "1080"
+    -c SECONDS  Cut first SECONDS of video
 EOF
 }
 
@@ -19,36 +20,39 @@ if [ $# -eq 0 ]; then
     show_help 
 fi
 
-while getopts ":hs:" opt; do
-	case $opt in
-		s)
+while getopts ":hs:c:" opt; do
+    case $opt in
+	s)
             if [[ $FORMATS == *$OPTARG* ]]; then
-				video_filter="-vf scale=-2:$OPTARG"
-			    PREFIX="_$OPTARG"p.mp4
+	        video_filter="-vf scale=-2:$OPTARG"
+		PREFIX="_$OPTARG"p.mp4
             else
             	echo "Invalid video format: $OPTARG" >&2
-				exit 1
+		exit 1
             fi
-      		;;
+      	    ;;
+        c)
+	    cut_seconds="-ss $OPTARG"
+	    ;;
         h)
             show_help
-			exit 0
-          	;;
+	    exit 0
+            ;;
     	\?)
-      		echo "Invalid option: -$OPTARG" >&2
-      		exit 1
-      		;;
+      	    echo "Invalid option: -$OPTARG" >&2
+      	    exit 1
+      	    ;;
     	:)
-      		echo "Option -$OPTARG requires an argument." >&2
-      		exit 1
-      		;;
+      	    echo "Option -$OPTARG requires an argument." >&2
+      	    exit 1
+      	    ;;
   	esac
 done
 
 shift "$((OPTIND-1))"
 
 for i in "$@"; do
-	input_file=$(realpath "$i")
-	out_file="$input_file$PREFIX"
-	ffmpeg -i "$input_file" $video_filter -c:v libx264 -profile:v high -level 4.2 -c:a aac -strict -2 "$out_file"
+    input_file=$(realpath "$i")
+    out_file="$input_file$PREFIX"
+    ffmpeg -i "$input_file" $video_filter -c:v libx264 -profile:v high -level 4.2 -c:a aac -strict -2 $cut_seconds "$out_file"
 done
